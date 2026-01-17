@@ -1,0 +1,65 @@
+# ============================================================================
+# INGRESS - Route traffic theo path (Production pattern)
+# ============================================================================
+# Browser gọi:
+#   http://localhost/api/*  → Backend API
+#   http://localhost/*      → Frontend
+# ============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: main-ingress
+  annotations:
+    # Traefik (K3s default ingress controller)
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+
+spec:
+  rules:
+  - http:
+      paths:
+      # /api/* → Backend Service
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-api-service
+            port:
+              number: 80
+
+      # /* → Frontend Service (catch-all, đặt cuối cùng)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-web-service
+            port:
+              number: 80
+
+# ============================================================================
+# FLOW với Ingress
+# ============================================================================
+#
+#   Browser: http://localhost/api/time
+#                    │
+#                    ▼
+#            ┌───────────────────┐
+#            │  Ingress (Traefik)│
+#            │  Port 80          │
+#            └─────────┬─────────┘
+#                      │
+#         ┌────────────┴────────────┐
+#         │ path: /api/*            │ path: /*
+#         ▼                         ▼
+#   ┌─────────────────┐     ┌─────────────────┐
+#   │ backend-api-    │     │ frontend-web-   │
+#   │ service         │     │ service         │
+#   │ (ClusterIP)     │     │ (ClusterIP)     │
+#   └─────────────────┘     └─────────────────┘
+#         │                         │
+#         ▼                         ▼
+#   ┌─────────────────┐     ┌─────────────────┐
+#   │ Backend Pods    │     │ Frontend Pods   │
+#   └─────────────────┘     └─────────────────┘
+#
+# ============================================================================

@@ -6,7 +6,9 @@
       "Bash(kubectl patch:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(docker build:*)",
+      "Bash(docker push:*)"
     ]
   }
 }

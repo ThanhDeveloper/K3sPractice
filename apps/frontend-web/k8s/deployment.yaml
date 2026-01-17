@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: frontend-web
-        image: thanhdeveloper/k3s-frontend-web:latest
+        image: thanhdeveloper/k3s-frontend-web:v2
 
         ports:
         - containerPort: 80        # nginx trong container chạy port 80

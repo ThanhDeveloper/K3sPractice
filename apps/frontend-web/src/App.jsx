@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 
-// API URL is injected at build time via environment variable
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7001'
+// API URL - same origin, Ingress route /api/* đến backend
+// Browser gọi: http://localhost/api/time (Backend vẫn internal, không expose trực tiếp)
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 function App() {
   const [timeData, setTimeData] = useState(null)
