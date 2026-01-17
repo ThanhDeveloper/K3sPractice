@@ -1,0 +1,49 @@
+# ============================================================================
+# DEPLOYMENT - Frontend React Application
+# ============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-web
+  labels:
+    app: frontend-web              # Label để identify deployment
+    tier: frontend                 # Tier: frontend/backend/database
+
+spec:
+  replicas: 2                      # 2 instances cho High Availability
+
+  selector:
+    matchLabels:
+      app: frontend-web            # Selector PHẢI khớp với template.labels
+
+  template:
+    metadata:
+      labels:
+        app: frontend-web          # Labels cho Pods
+        tier: frontend
+
+    spec:
+      containers:
+      - name: frontend-web
+        image: thanhdeveloper/k3s-frontend-web:latest
+
+        ports:
+        - containerPort: 80        # nginx trong container chạy port 80
+
+        # Frontend cần ít resource hơn Backend
+        resources:
+          requests:
+            memory: "32Mi"         # 32 MiB minimum (static files nhẹ)
+            cpu: "50m"             # 0.05 CPU core
+          limits:
+            memory: "64Mi"         # 64 MiB maximum
+            cpu: "100m"            # 0.1 CPU core
+
+        # Chỉ cần liveness probe cho static files
+        livenessProbe:
+          httpGet:
+            path: /                # Check trang chủ
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10

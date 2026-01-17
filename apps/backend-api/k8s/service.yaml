@@ -1,0 +1,75 @@
+# ============================================================================
+# SERVICE - Expose Pods ra network và load balancing
+# ============================================================================
+# Service cung cấp:
+# 1. Stable IP address (Pod IP thay đổi khi restart, Service IP không đổi)
+# 2. DNS name (backend-api-service.default.svc.cluster.local)
+# 3. Load balancing giữa các Pods
+# ============================================================================
+
+apiVersion: v1                     # API version cho Service
+kind: Service                      # Loại resource: Service
+metadata:
+  name: backend-api-service        # Tên Service - dùng làm DNS name
+                                   # Frontend gọi: http://backend-api-service/api/time
+  labels:
+    app: backend-api               # Label để filter: kubectl get svc -l app=backend-api
+
+spec:
+  # ============================================================================
+  # SERVICE TYPE - Cách expose Service
+  # ============================================================================
+  # ClusterIP (default): Chỉ truy cập được từ trong cluster
+  #   → Dùng cho: Backend API, Database, Internal services
+  #   → KHÔNG thể truy cập từ browser/internet
+  #
+  # NodePort: Expose qua port trên mỗi Node (30000-32767)
+  #   → Dùng cho: Development, testing
+  #   → Truy cập: http://localhost:<nodePort>
+  #
+  # LoadBalancer: Tạo external load balancer (cloud provider)
+  #   → Dùng cho: Production trên cloud (AWS, GCP, Azure)
+  #   → Tự động có Public IP
+  # ============================================================================
+  type: ClusterIP                  # INTERNAL ONLY - Frontend gọi được, browser không gọi được
+
+  # ============================================================================
+  # SELECTOR - Service gửi traffic đến Pods nào?
+  # ============================================================================
+  # Service tìm tất cả Pods có labels khớp với selector
+  # Rồi load balance traffic giữa các Pods đó
+  selector:
+    app: backend-api               # Gửi traffic đến Pods có label app=backend-api
+
+  # ============================================================================
+  # PORTS - Cấu hình port mapping
+  # ============================================================================
+  ports:
+  - port: 80                       # PORT của Service (Frontend gọi port này)
+                                   # http://backend-api-service:80/api/time
+                                   # Hoặc: http://backend-api-service/api/time (80 là default)
+
+    targetPort: 8080               # PORT của Container (Pod đang listen)
+                                   # Phải khớp với containerPort trong Deployment
+
+    protocol: TCP                  # Protocol: TCP hoặc UDP
+
+# ============================================================================
+# FLOW: Frontend gọi Backend
+# ============================================================================
+#
+#   Frontend Pod                    Service                      Backend Pods
+#   ┌─────────┐                    ┌─────────┐                  ┌─────────┐
+#   │  React  │ ──── port 80 ────▶ │ backend │ ── targetPort ─▶ │ Pod 1   │
+#   │  App    │                    │ -api-   │     8080         │ :8080   │
+#   └─────────┘                    │ service │                  ├─────────┤
+#                                  │         │ ── targetPort ─▶ │ Pod 2   │
+#   Gọi:                           │ClusterIP│     8080         │ :8080   │
+#   http://backend-api-service     │10.43.x.x│                  └─────────┘
+#   /api/time                      └─────────┘
+#                                       ▲
+#                                       │
+#                              Load balances giữa
+#                              tất cả Pods có label
+#                              app=backend-api
+# ============================================================================

@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dotnet-sample
+  namespace: argocd
+spec:
+  project: default
+
+  # Source: Your Git repository
+  source:
+    repoURL: https://github.com/YOUR_USERNAME/K3sPractice.git
+    targetRevision: main
+    path: apps/dotnet-sample
+
+  # Destination: Where to deploy
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # Sync Policy: Automatic deployment
+  syncPolicy:
+    automated:
+      prune: true      # Delete resources that are no longer in Git
+      selfHeal: true   # Automatically sync if someone makes manual changes
+      allowEmpty: false
+    syncOptions:
+    - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

@@ -1,0 +1,109 @@
+# ============================================================================
+# DEPLOYMENT - Quản lý việc triển khai và scaling các Pods
+# ============================================================================
+# Deployment đảm bảo số lượng Pod mong muốn luôn chạy
+# Tự động tạo Pod mới nếu Pod cũ bị crash
+# Hỗ trợ rolling update (cập nhật không downtime)
+# ============================================================================
+
+apiVersion: apps/v1                # API version cho Deployment
+kind: Deployment                   # Loại resource: Deployment
+metadata:
+  name: backend-api                # Tên của Deployment (unique trong namespace)
+  labels:
+    # Labels = key-value pairs để phân loại và tìm kiếm resources
+    # Có thể dùng: kubectl get deployment -l app=backend-api
+    app: backend-api               # Label "app" - tên ứng dụng
+    tier: backend                  # Label "tier" - tầng trong kiến trúc (frontend/backend/database)
+
+spec:
+  # ============================================================================
+  # REPLICAS - Số lượng Pod instances
+  # ============================================================================
+  # replicas: 1  → Development (tiết kiệm resource)
+  # replicas: 2  → Minimum cho HA (High Availability)
+  # replicas: 3+ → Production (chịu tải cao hơn)
+  replicas: 2
+
+  # ============================================================================
+  # SELECTOR - Cách Deployment tìm Pods mà nó quản lý
+  # ============================================================================
+  # Deployment chỉ quản lý Pods có labels khớp với selector này
+  # QUAN TRỌNG: selector.matchLabels PHẢI khớp với template.metadata.labels
+  selector:
+    matchLabels:
+      app: backend-api             # Tìm Pods có label app=backend-api
+
+  # ============================================================================
+  # TEMPLATE - Pod template (blueprint để tạo Pods)
+  # ============================================================================
+  template:
+    metadata:
+      labels:
+        # Labels của Pod - PHẢI khớp với selector.matchLabels ở trên
+        app: backend-api           # Dùng để Service tìm thấy Pod
+        tier: backend              # Dùng để filter: kubectl get pods -l tier=backend
+
+    spec:
+      containers:
+      # ========================================================================
+      # CONTAINER SPECIFICATION
+      # ========================================================================
+      - name: backend-api          # Tên container (dùng trong logs, exec)
+
+        # IMAGE - Docker image để chạy
+        # Format: <registry>/<username>/<image>:<tag>
+        # latest = luôn pull image mới nhất (không recommend cho production)
+        # Nên dùng version cụ thể: thanhdeveloper/k3s-backend-api:v1.0.0
+        image: thanhdeveloper/k3s-backend-api:latest
+
+        # PORTS - Các port container expose
+        ports:
+        - containerPort: 8080      # Port mà app trong container lắng nghe
+                                   # Phải khớp với ASPNETCORE_URLS trong Dockerfile
+
+        # ======================================================================
+        # RESOURCES - Giới hạn CPU và Memory
+        # ======================================================================
+        # Quan trọng để:
+        # 1. Kubernetes biết cần bao nhiêu resource để schedule Pod
+        # 2. Ngăn Pod chiếm quá nhiều resource của node
+        # 3. Tính toán capacity planning
+        resources:
+          # REQUESTS = Resource tối thiểu được đảm bảo (guaranteed)
+          # Kubernetes dùng giá trị này để schedule Pod lên Node
+          requests:
+            memory: "64Mi"         # 64 Mebibytes RAM tối thiểu
+            cpu: "100m"            # 100 millicores = 0.1 CPU core tối thiểu
+
+          # LIMITS = Resource tối đa được phép dùng
+          # Vượt memory limit → Pod bị OOMKilled (Out Of Memory)
+          # Vượt CPU limit → Pod bị throttle (chậm lại)
+          limits:
+            memory: "128Mi"        # Tối đa 128 MiB RAM
+            cpu: "250m"            # Tối đa 0.25 CPU core
+
+        # ======================================================================
+        # LIVENESS PROBE - Kiểm tra Pod còn sống không
+        # ======================================================================
+        # Nếu liveness probe fail → Kubernetes restart Pod
+        # Use case: App bị deadlock, infinite loop, không respond
+        livenessProbe:
+          httpGet:
+            path: /health          # Endpoint để check (phải trả về 200 OK)
+            port: 8080             # Port của container
+          initialDelaySeconds: 5   # Đợi 5s sau khi container start mới bắt đầu check
+          periodSeconds: 10        # Check mỗi 10 giây
+
+        # ======================================================================
+        # READINESS PROBE - Kiểm tra Pod sẵn sàng nhận traffic chưa
+        # ======================================================================
+        # Nếu readiness probe fail → Pod bị remove khỏi Service (không nhận traffic)
+        # Use case: App đang khởi động, đang load cache, đang connect DB
+        # Khác với liveness: readiness fail KHÔNG restart Pod
+        readinessProbe:
+          httpGet:
+            path: /health          # Endpoint để check
+            port: 8080
+          initialDelaySeconds: 3   # Đợi 3s trước khi check lần đầu
+          periodSeconds: 5         # Check mỗi 5 giây (nhanh hơn liveness)

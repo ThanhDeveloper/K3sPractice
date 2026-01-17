@@ -1,0 +1,72 @@
+# ============================================================================
+# SERVICE - Frontend Web (NodePort - External Access)
+# ============================================================================
+# NodePort cho phép truy cập từ bên ngoài cluster
+# Browser có thể truy cập: http://localhost:30700
+# ============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-web-service
+  labels:
+    app: frontend-web
+
+spec:
+  # ============================================================================
+  # NodePort - Expose ra ngoài cluster
+  # ============================================================================
+  # Khi dùng NodePort:
+  # - K8s mở 1 port trên TẤT CẢ nodes (nodePort)
+  # - Traffic đến nodePort được forward vào Service
+  # - Service load balance đến các Pods
+  #
+  # Port range: 30000-32767 (có thể tự chọn hoặc để K8s auto-assign)
+  # ============================================================================
+  type: NodePort
+
+  selector:
+    app: frontend-web              # Route traffic đến Pods có label này
+
+  ports:
+  - port: 80                       # Service port (internal)
+    targetPort: 80                 # Container port (nginx)
+    nodePort: 30700                # External port - http://localhost:30700
+    protocol: TCP
+
+# ============================================================================
+# FLOW: Browser truy cập Frontend
+# ============================================================================
+#
+#   Your Browser                    K8s Node                        Frontend Pods
+#   ┌─────────┐                    ┌─────────┐                     ┌─────────┐
+#   │ Chrome  │ ── nodePort ─────▶ │  :30700 │ ── port 80 ───────▶ │ Pod 1   │
+#   │ Firefox │     30700          │         │                     │ nginx   │
+#   └─────────┘                    │ Service │                     │ :80     │
+#                                  │ frontend│                     ├─────────┤
+#   Truy cập:                      │ -web-   │ ── port 80 ───────▶ │ Pod 2   │
+#   http://localhost:30700         │ service │                     │ nginx   │
+#                                  └─────────┘                     │ :80     │
+#                                                                  └─────────┘
+#
+# So sánh với Backend (ClusterIP):
+# - Backend: ClusterIP → Chỉ Frontend gọi được (internal)
+# - Frontend: NodePort → Browser truy cập được (external)
+# ============================================================================
+
+# ============================================================================
+# PORT MAPPING SUMMARY
+# ============================================================================
+#
+#   ┌──────────────────────────────────────────────────────────────────────┐
+#   │                         PORT TYPES                                   │
+#   ├──────────────────────────────────────────────────────────────────────┤
+#   │  nodePort (30700)    │ Port trên Node, browser truy cập             │
+#   │  port (80)           │ Port của Service, dùng trong cluster         │
+#   │  targetPort (80)     │ Port của Container, app đang listen          │
+#   │  containerPort (80)  │ Port khai báo trong Deployment               │
+#   └──────────────────────────────────────────────────────────────────────┘
+#
+#   Browser → nodePort:30700 → Service port:80 → targetPort:80 → Container
+#
+# ============================================================================
