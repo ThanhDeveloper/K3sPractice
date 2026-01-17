@@ -1,0 +1,34 @@
+# ============================================================================
+# ROOT APPLICATION - App of Apps Pattern
+# ============================================================================
+# Đây là "master app" quản lý tất cả apps khác
+# Chỉ cần apply file này 1 lần duy nhất
+# Sau đó mọi thay đổi trong devops/ folder sẽ tự động sync
+# ============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-app
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/ThanhDeveloper/K3sPractice.git
+    targetRevision: main
+    path: devops                    # Scan tất cả YAML files trong devops/
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd               # Apps được tạo trong argocd namespace
+
+  syncPolicy:
+    automated:
+      prune: true                   # Xóa app nếu xóa file yaml
+      selfHeal: true                # Auto sync nếu có drift
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,43 @@
+# ============================================================================
+# ArgoCD Application - Backend API
+# ============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backend-api
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ThanhDeveloper/K3sPractice.git
+    targetRevision: main
+    path: apps/backend-api/k8s      # Thư mục chứa K8s manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true                   # Xóa resources không còn trong Git
+      selfHeal: true                # Tự động sync nếu có thay đổi manual
+---
+# ============================================================================
+# ArgoCD Application - Frontend Web
+# ============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend-web
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ThanhDeveloper/K3sPractice.git
+    targetRevision: main
+    path: apps/frontend-web/k8s     # Thư mục chứa K8s manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
