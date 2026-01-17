@@ -41,3 +41,27 @@ spec:
     automated:
       prune: true
       selfHeal: true
+---
+# ============================================================================
+# ArgoCD Application - Ingress (Routing)
+# ============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ThanhDeveloper/K3sPractice.git
+    targetRevision: main
+    path: apps
+    directory:
+      include: 'ingress.yaml'      # Chỉ lấy file ingress.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
