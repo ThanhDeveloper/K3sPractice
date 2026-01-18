@@ -11,7 +11,8 @@
       "Bash(docker push:*)",
       "Bash(k3s:*)",
       "Bash(kubectl version:*)",
-      "Bash(docker login:*)"
+      "Bash(docker login:*)",
+      "Bash(kubectl rollout:*)"
     ]
   }
 }

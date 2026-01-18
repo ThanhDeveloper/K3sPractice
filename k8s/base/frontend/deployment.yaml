@@ -13,6 +13,12 @@ metadata:
 spec:
   replicas: 2                      # 2 instances cho High Availability
 
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1                  # Tạo pod mới trước khi xóa pod cũ
+      maxUnavailable: 0            # Zero downtime
+
   selector:
     matchLabels:
       app: frontend-web            # Selector PHẢI khớp với template.labels
