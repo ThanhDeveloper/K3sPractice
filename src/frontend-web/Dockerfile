@@ -8,10 +8,6 @@ RUN npm install
 
 # Copy source and build
 COPY . .
-
-# Build with API URL for K8s (backend service name)
-ARG VITE_API_URL=http://backend-api-service:80
-ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
 # Stage 2: Production (nginx ~25MB)
