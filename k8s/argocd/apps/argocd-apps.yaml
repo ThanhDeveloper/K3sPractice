@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://github.com/ThanhDeveloper/K3sPractice.git
     targetRevision: main
-    path: apps/backend-api/k8s      # Thư mục chứa K8s manifests
+    path: k8s/base/backend          # Thư mục chứa K8s manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: default
@@ -33,7 +33,7 @@ spec:
   source:
     repoURL: https://github.com/ThanhDeveloper/K3sPractice.git
     targetRevision: main
-    path: apps/frontend-web/k8s     # Thư mục chứa K8s manifests
+    path: k8s/base/frontend         # Thư mục chứa K8s manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: default
@@ -55,7 +55,7 @@ spec:
   source:
     repoURL: https://github.com/ThanhDeveloper/K3sPractice.git
     targetRevision: main
-    path: apps
+    path: k8s/base
     directory:
       include: 'ingress.yaml'      # Chỉ lấy file ingress.yaml
   destination:

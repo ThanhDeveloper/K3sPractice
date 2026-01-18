@@ -8,7 +8,10 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(docker build:*)",
-      "Bash(docker push:*)"
+      "Bash(docker push:*)",
+      "Bash(k3s:*)",
+      "Bash(kubectl version:*)",
+      "Bash(docker login:*)"
     ]
   }
 }

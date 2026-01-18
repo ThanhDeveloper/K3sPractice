@@ -2,8 +2,9 @@
 # ROOT APPLICATION - App of Apps Pattern
 # ============================================================================
 # Đây là "master app" quản lý tất cả apps khác
-# Chỉ cần apply file này 1 lần duy nhất
-# Sau đó mọi thay đổi trong devops/ folder sẽ tự động sync
+# Chỉ cần apply file này 1 lần duy nhất:
+#   kubectl apply -f k8s/argocd/root-app.yaml
+# Sau đó mọi thay đổi trong k8s/argocd/apps/ folder sẽ tự động sync
 # ============================================================================
 
 apiVersion: argoproj.io/v1alpha1
@@ -19,7 +20,7 @@ spec:
   source:
     repoURL: https://github.com/ThanhDeveloper/K3sPractice.git
     targetRevision: main
-    path: devops                    # Scan tất cả YAML files trong devops/
+    path: k8s/argocd/apps           # Scan tất cả YAML files trong k8s/argocd/apps/
 
   destination:
     server: https://kubernetes.default.svc
