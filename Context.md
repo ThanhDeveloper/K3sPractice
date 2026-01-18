@@ -30,3 +30,12 @@
 - User có thể mở FE trên browser.
 - FE có thể gọi BE hoạt động tốt
 - Có 1 md flow về kiến trúc. ví dụ sơ đồ của app này càng tốt. 
+
+# Flow cho CICD
+1. Build image mới
+2. Push image lên registry
+3. Run DB migration (trước khi deploy)
+4. Update deployment.yaml với tag mới
+5. Git push → ArgoCD sync
+
+# step setup apply root-app.yml
