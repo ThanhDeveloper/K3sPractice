@@ -84,8 +84,8 @@ function App() {
                 <span style={styles.detailValue}>{serverData.gg_client_id}</span>
               </div>
               <div style={styles.detailItem}>
-                <span style={styles.detailLabel}>Has Secret:</span>
-                <span style={styles.detailValue}>{serverData.has_client_secret ? 'Yes' : 'No'}</span>
+                <span style={styles.detailLabel}>Client Secret:</span>
+                <span style={styles.detailValue}>{serverData.client_secret}</span>
               </div>
             </div>
           </div>

@@ -16,4 +16,4 @@ data:
   # GG_Client_Id - Google Client ID (không nhạy cảm, có thể public)
   # Sẽ được inject vào container như environment variable
   # .NET Core mapping: GoogleAuth__GG_Client_Id -> config["GoogleAuth:GG_Client_Id"]
-  GoogleAuth__GG_Client_Id: "your-google-client-id-here"
+  GoogleAuth__GG_Client_Id: "gg test id"

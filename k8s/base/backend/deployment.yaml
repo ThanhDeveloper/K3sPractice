@@ -55,7 +55,7 @@ spec:
         # Format: <registry>/<username>/<image>:<tag>
         # latest = luôn pull image mới nhất (không recommend cho production)
         # Nên dùng version cụ thể: thanhdeveloper/k3s-backend-api:v1.0.0
-        image: thanhdeveloper/k3s-backend-api:v2
+        image: thanhdeveloper/k3s-backend-api:v3
 
         # PORTS - Các port container expose
         ports:

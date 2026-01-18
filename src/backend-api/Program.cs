@@ -25,7 +25,7 @@ app.MapGet("/api/server-information", () =>
     // GG_Client_Id from ConfigMap (inject as env -> appsettings override)
     var ggClientId = config["GoogleAuth:GG_Client_Id"] ?? "not-configured";
     // client_secret from Secret (inject as env -> top-level config key)
-    var hasClientSecret = !string.IsNullOrEmpty(config["client_secret"]);
+    var clientSecret = config["client_secret"] ?? "not-configured";
 
     return Results.Ok(new
     {
@@ -35,7 +35,7 @@ app.MapGet("/api/server-information", () =>
         service = "backend-api",
         version = "1.0.0",
         gg_client_id = ggClientId,
-        has_client_secret = hasClientSecret,
+        client_secret = clientSecret,
         hostname = Environment.MachineName
     });
 });
