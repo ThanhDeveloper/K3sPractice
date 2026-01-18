@@ -1,0 +1,78 @@
+# ============================================================================
+# HPA - Horizontal Pod Autoscaler
+# ============================================================================
+# HPA tự động scale số lượng Pod dựa trên metrics (CPU, Memory)
+# Giúp ứng dụng handle traffic spikes và tiết kiệm resource khi idle
+# ============================================================================
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-api-hpa
+  labels:
+    app: backend-api
+    tier: backend
+spec:
+  # Target Deployment để scale
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend-api
+
+  # Giới hạn số lượng replicas
+  minReplicas: 2              # Tối thiểu 2 pods (High Availability)
+  maxReplicas: 5              # Tối đa 5 pods (theo requirement)
+
+  # Metrics để quyết định scale
+  metrics:
+    # Scale dựa trên Memory usage
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 50    # Scale khi memory > 50%
+
+    # Scale dựa trên CPU usage (backup metric)
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70    # Scale khi CPU > 70%
+
+  # Behavior - Cấu hình cách scale up/down
+  behavior:
+    # Scale Up behavior
+    scaleUp:
+      stabilizationWindowSeconds: 30    # Đợi 30s ổn định trước khi scale up
+      policies:
+        - type: Pods
+          value: 2                      # Tối đa thêm 2 pods mỗi lần
+          periodSeconds: 60             # Mỗi 60 giây
+
+    # Scale Down behavior
+    scaleDown:
+      stabilizationWindowSeconds: 120   # Đợi 2 phút ổn định trước khi scale down
+      policies:
+        - type: Pods
+          value: 1                      # Chỉ giảm 1 pod mỗi lần
+          periodSeconds: 120            # Mỗi 2 phút
+
+# ============================================================================
+# LƯU Ý QUAN TRỌNG:
+# ============================================================================
+# 1. HPA cần metrics-server để hoạt động
+#    K3s đã cài sẵn metrics-server
+#
+# 2. Deployment PHẢI có resources.requests để HPA tính được utilization
+#    Ví dụ: requests.memory: 64Mi → 50% = 32Mi usage sẽ trigger scale
+#
+# 3. Kiểm tra HPA status:
+#    kubectl get hpa backend-api-hpa
+#    kubectl describe hpa backend-api-hpa
+#
+# 4. Test scale:
+#    kubectl run load-test --image=busybox --rm -it -- sh
+#    while true; do wget -q -O- http://backend-api-service/api/server-information; done
+# ============================================================================

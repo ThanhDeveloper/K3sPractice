@@ -55,7 +55,7 @@ spec:
         # Format: <registry>/<username>/<image>:<tag>
         # latest = luôn pull image mới nhất (không recommend cho production)
         # Nên dùng version cụ thể: thanhdeveloper/k3s-backend-api:v1.0.0
-        image: thanhdeveloper/k3s-backend-api:latest
+        image: thanhdeveloper/k3s-backend-api:v2
 
         # PORTS - Các port container expose
         ports:
@@ -107,3 +107,23 @@ spec:
             port: 8080
           initialDelaySeconds: 3   # Đợi 3s trước khi check lần đầu
           periodSeconds: 5         # Check mỗi 5 giây (nhanh hơn liveness)
+
+        # ======================================================================
+        # ENVIRONMENT VARIABLES - Inject config từ ConfigMap và Secret
+        # ======================================================================
+        env:
+          # Từ ConfigMap - GG_Client_Id (không nhạy cảm)
+          - name: GoogleAuth__GG_Client_Id
+            valueFrom:
+              configMapKeyRef:
+                name: backend-api-config
+                key: GoogleAuth__GG_Client_Id
+
+          # Từ Secret - client_secret (NHẠY CẢM)
+          # Secret phải được tạo trước bằng kubectl:
+          # kubectl create secret generic backend-api-secret --from-literal=client_secret=YOUR_VALUE
+          - name: client_secret
+            valueFrom:
+              secretKeyRef:
+                name: backend-api-secret
+                key: client_secret

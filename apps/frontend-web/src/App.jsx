@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react'
 
 // API URL - same origin, Ingress route /api/* đến backend
-// Browser gọi: http://localhost/api/time (Backend vẫn internal, không expose trực tiếp)
+// Browser gọi: http://localhost/api/server-information (Backend vẫn internal, không expose trực tiếp)
 const API_URL = import.meta.env.VITE_API_URL || ''
 
 function App() {
-  const [timeData, setTimeData] = useState(null)
+  const [serverData, setServerData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [lastRefresh, setLastRefresh] = useState(new Date())
 
-  const fetchTime = async () => {
+  const fetchServerInfo = async () => {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_URL}/api/time`)
+      const response = await fetch(`${API_URL}/api/server-information`)
       if (!response.ok) throw new Error('API request failed')
       const data = await response.json()
-      setTimeData(data)
+      setServerData(data)
       setLastRefresh(new Date())
     } catch (err) {
       setError(err.message)
@@ -27,8 +27,8 @@ function App() {
   }
 
   useEffect(() => {
-    fetchTime()
-    const interval = setInterval(fetchTime, 5000) // Refresh every 5 seconds
+    fetchServerInfo()
+    const interval = setInterval(fetchServerInfo, 5000) // Refresh every 5 seconds
     return () => clearInterval(interval)
   }, [])
 
@@ -40,10 +40,10 @@ function App() {
 
         <div style={styles.apiInfo}>
           <span style={styles.label}>API Endpoint:</span>
-          <code style={styles.code}>{API_URL}/api/time</code>
+          <code style={styles.code}>{API_URL}/api/server-information</code>
         </div>
 
-        {loading && !timeData && (
+        {loading && !serverData && (
           <div style={styles.loading}>Loading...</div>
         )}
 
@@ -55,31 +55,43 @@ function App() {
           </div>
         )}
 
-        {timeData && (
+        {serverData && (
           <div style={styles.result}>
             <div style={styles.timeDisplay}>
-              <div style={styles.utcTime}>{timeData.utc}</div>
-              <div style={styles.timezone}>{timeData.timezone}</div>
+              <div style={styles.utcTime}>{serverData.utc}</div>
+              <div style={styles.timezone}>{serverData.timezone}</div>
             </div>
 
             <div style={styles.details}>
               <div style={styles.detailItem}>
                 <span style={styles.detailLabel}>Timestamp:</span>
-                <span style={styles.detailValue}>{timeData.timestamp}</span>
+                <span style={styles.detailValue}>{serverData.timestamp}</span>
               </div>
               <div style={styles.detailItem}>
                 <span style={styles.detailLabel}>Service:</span>
-                <span style={styles.detailValue}>{timeData.service}</span>
+                <span style={styles.detailValue}>{serverData.service}</span>
               </div>
               <div style={styles.detailItem}>
                 <span style={styles.detailLabel}>Version:</span>
-                <span style={styles.detailValue}>{timeData.version}</span>
+                <span style={styles.detailValue}>{serverData.version}</span>
+              </div>
+              <div style={styles.detailItem}>
+                <span style={styles.detailLabel}>Hostname:</span>
+                <span style={styles.detailValue}>{serverData.hostname}</span>
+              </div>
+              <div style={styles.detailItem}>
+                <span style={styles.detailLabel}>GG Client ID:</span>
+                <span style={styles.detailValue}>{serverData.gg_client_id}</span>
+              </div>
+              <div style={styles.detailItem}>
+                <span style={styles.detailLabel}>Has Secret:</span>
+                <span style={styles.detailValue}>{serverData.has_client_secret ? 'Yes' : 'No'}</span>
               </div>
             </div>
           </div>
         )}
 
-        <button style={styles.button} onClick={fetchTime}>
+        <button style={styles.button} onClick={fetchServerInfo}>
           Refresh Now
         </button>
 
